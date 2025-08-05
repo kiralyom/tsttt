@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>emi is pretty</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+</head>
+
+<body>
+    <div class="container">
+        <span class="display-name"></span>
+    </div>
+    <canvas id="myCanvas"></canvas>
+
+    <script defer>
+        const displayNameEl = document.querySelector('.display-name');
+        let textToType = "emi is pretty";
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 100;
+        let deletingSpeed = 50;
+        let delayAfterFullType = 1500;
+        let delayAfterFullDelete = 500;
+
+        function handleTypewriter() {
+            const currentText = textToType.substring(0, charIndex);
+            displayNameEl.textContent = currentText;
+
+            displayNameEl.classList.remove('typing', 'deleting', 'full');
+
+            if (isDeleting && charIndex > 0) {
+                charIndex--;
+                displayNameEl.classList.add('deleting');
+                setTimeout(handleTypewriter, deletingSpeed);
+            } else if (!isDeleting && charIndex < textToType.length) {
+                charIndex++;
+                displayNameEl.classList.add('typing');
+                setTimeout(handleTypewriter, typingSpeed);
+            } else if (!isDeleting && charIndex === textToType.length) {
+                isDeleting = true;
+                displayNameEl.classList.add('full');
+                setTimeout(handleTypewriter, delayAfterFullType);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                displayNameEl.classList.add('typing');
+                setTimeout(handleTypewriter, delayAfterFullDelete);
+            }
+        }
+
+        let titleText = "emi is pretty";
+        let titleCharIndex = 0;
+        let isTitleDeleting = false;
+        let titleTypingSpeed = 300;
+        let titleDeletingSpeed = 200;
+        let titleDelayAfterFullType = 2000;
+        let titleDelayAfterFullDelete = 700;
+
+        function handleTitleTypewriter() {
+            const currentTitle = titleText.substring(0, titleCharIndex);
+            document.title = currentTitle + (isTitleDeleting || titleCharIndex < titleText.length ? '|' : '');
+
+            if (!isTitleDeleting && titleCharIndex < titleText.length) {
+                titleCharIndex++;
+                setTimeout(handleTitleTypewriter, titleTypingSpeed);
+            } else if (isTitleDeleting && titleCharIndex > 0) {
+                titleCharIndex--;
+                setTimeout(handleTitleTypewriter, titleDeletingSpeed);
+            } else if (!isTitleDeleting && titleCharIndex === titleText.length) {
+                isTitleDeleting = true;
+                setTimeout(handleTitleTypewriter, titleDelayAfterFullType);
+            } else if (isTitleDeleting && titleCharIndex === 0) {
+                isTitleDeleting = false;
+                setTimeout(handleTitleTypewriter, titleDelayAfterFullDelete);
+            }
+        }
+
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        const circles = [];
+        const numCircles = 200;
+        const radius = 2;
+        const connectRadius = 100;
+
+        function Circle(x, y, dx, dy, radius, color) {
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.radius = radius;
+            this.color = color;
+
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            };
+
+            this.update = function () {
+                if (this.x + this.radius > width || this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                }
+                if (this.y + this.radius > height || this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                }
+                this.x += this.dx;
+                this.y += this.dy;
+            };
+
+            this.connect = function (circles) {
+                for (let i = 0; i < circles.length; i++) {
+                    if (circles[i] !== this) {
+                        const dist = Math.sqrt(Math.pow(this.x - circles[i].x, 2) + Math.pow(this.y - circles[i].y, 2));
+                        if (dist <= connectRadius) {
+                            ctx.beginPath();
+                            ctx.moveTo(this.x, this.y);
+                            ctx.lineTo(circles[i].x, circles[i].y);
+                            ctx.strokeStyle = "rgb(255,255,255,0.25)";
+                            ctx.stroke();
+                        }
+                    }
+                }
+            };
+        }
+
+        function init() {
+            for (let i = 0; i < numCircles; i++) {
+                const x = radius + Math.random() * (width - radius * 2);
+                const y = radius + Math.random() * (height - radius * 2);
+                const dx = (Math.random() - 0.5) * 4;
+                const dy = (Math.random() - 0.5) * 4;
+                const color = `rgb(255,255,255,0.25)`;
+                circles.push(new Circle(x, y, dx, dy, radius, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, width, height);
+            circles.forEach((circle) => {
+                circle.draw();
+                circle.update();
+                circle.connect(circles);
+            });
+        }
+
+        window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        init();
+        animate();
+        handleTypewriter();
+        handleTitleTypewriter();
+    </script>
+</body>
+</html>
